@@ -34,6 +34,11 @@
             this.LblRead = new System.Windows.Forms.Label();
             this.TxtRead = new System.Windows.Forms.TextBox();
             this.BtnRead = new System.Windows.Forms.Button();
+            this.TxtMP3 = new System.Windows.Forms.TextBox();
+            this.BtnOpenMP3 = new System.Windows.Forms.Button();
+            this.LblMP3 = new System.Windows.Forms.Label();
+            this.BtnReadMP3 = new System.Windows.Forms.Button();
+            this.LblMP3File = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // BtnListen
@@ -68,9 +73,9 @@
             this.LblRead.AutoSize = true;
             this.LblRead.Location = new System.Drawing.Point(318, 41);
             this.LblRead.Name = "LblRead";
-            this.LblRead.Size = new System.Drawing.Size(86, 15);
+            this.LblRead.Size = new System.Drawing.Size(83, 15);
             this.LblRead.TabIndex = 4;
-            this.LblRead.Text = " Speech to Text";
+            this.LblRead.Text = "Speech to Text";
             // 
             // TxtRead
             // 
@@ -90,11 +95,64 @@
             this.BtnRead.UseVisualStyleBackColor = true;
             this.BtnRead.Click += new System.EventHandler(this.BtnRead_Click);
             // 
+            // TxtMP3
+            // 
+            this.TxtMP3.Location = new System.Drawing.Point(624, 59);
+            this.TxtMP3.Multiline = true;
+            this.TxtMP3.Name = "TxtMP3";
+            this.TxtMP3.Size = new System.Drawing.Size(300, 100);
+            this.TxtMP3.TabIndex = 7;
+            // 
+            // BtnOpenMP3
+            // 
+            this.BtnOpenMP3.Location = new System.Drawing.Point(624, 165);
+            this.BtnOpenMP3.Name = "BtnOpenMP3";
+            this.BtnOpenMP3.Size = new System.Drawing.Size(300, 50);
+            this.BtnOpenMP3.TabIndex = 8;
+            this.BtnOpenMP3.Text = "Open MP3";
+            this.BtnOpenMP3.UseVisualStyleBackColor = true;
+            this.BtnOpenMP3.Click += new System.EventHandler(this.BtnOpenMP3_Click);
+            // 
+            // LblMP3
+            // 
+            this.LblMP3.AutoSize = true;
+            this.LblMP3.Location = new System.Drawing.Point(624, 41);
+            this.LblMP3.Name = "LblMP3";
+            this.LblMP3.Size = new System.Drawing.Size(69, 15);
+            this.LblMP3.TabIndex = 9;
+            this.LblMP3.Text = "MP3 to Text";
+            this.LblMP3.UseMnemonic = false;
+            // 
+            // BtnReadMP3
+            // 
+            this.BtnReadMP3.Location = new System.Drawing.Point(624, 277);
+            this.BtnReadMP3.Name = "BtnReadMP3";
+            this.BtnReadMP3.Size = new System.Drawing.Size(300, 50);
+            this.BtnReadMP3.TabIndex = 10;
+            this.BtnReadMP3.Text = "Read MP3";
+            this.BtnReadMP3.UseVisualStyleBackColor = true;
+            this.BtnReadMP3.Click += new System.EventHandler(this.BtnReadMP3_Click);
+            // 
+            // LblMP3File
+            // 
+            this.LblMP3File.AutoSize = true;
+            this.LblMP3File.Location = new System.Drawing.Point(624, 218);
+            this.LblMP3File.Name = "LblMP3File";
+            this.LblMP3File.Size = new System.Drawing.Size(55, 15);
+            this.LblMP3File.TabIndex = 11;
+            this.LblMP3File.Text = "MP3 File:";
+            this.LblMP3File.UseMnemonic = false;
+            // 
             // FormSpeech
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(635, 238);
+            this.ClientSize = new System.Drawing.Size(941, 339);
+            this.Controls.Add(this.LblMP3File);
+            this.Controls.Add(this.BtnReadMP3);
+            this.Controls.Add(this.LblMP3);
+            this.Controls.Add(this.BtnOpenMP3);
+            this.Controls.Add(this.TxtMP3);
             this.Controls.Add(this.BtnRead);
             this.Controls.Add(this.TxtRead);
             this.Controls.Add(this.LblRead);
@@ -117,5 +175,10 @@
         private Label LblRead;
         private TextBox TxtRead;
         private Button BtnRead;
+        private TextBox TxtMP3;
+        private Button BtnOpenMP3;
+        private Label LblMP3;
+        private Button BtnReadMP3;
+        private Label LblMP3File;
     }
 }
