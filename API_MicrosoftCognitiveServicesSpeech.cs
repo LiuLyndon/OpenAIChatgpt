@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Microsoft.CognitiveServices.Speech;
 using Microsoft.CognitiveServices.Speech.Audio;
+using Microsoft.CognitiveServices.Speech.Speaker;
 
 namespace OpenAIChatgpt
 {
@@ -24,6 +25,7 @@ namespace OpenAIChatgpt
         // Creates an instance of a speech config with specified subscription key and service region.
         // Replace with your own subscription key and service region (e.g., "westus").
         SpeechConfig config { set; get; }
+
         /// <summary>
         /// Report ByDay Library using EPPlus
         /// </summary>
@@ -31,8 +33,8 @@ namespace OpenAIChatgpt
         public API_MicrosoftCognitiveServicesSpeech()
         {
             // https://learn.microsoft.com/zh-tw/azure/cognitive-services/speech-service/get-started-intent-recognition?pivots=programming-language-csharp
-            config = SpeechConfig.FromSubscription("e328661b67904115ad544d26e6682d74", "japaneast");
-            // config.SpeechRecognitionLanguage= "en";
+            // config = SpeechConfig.FromSubscription("e328661b67904115ad544d26e6682d74", "japaneast");
+            // config.SpeechRecognitionLanguage= "en-us";
         }
 
         #region IDisposable
@@ -231,6 +233,10 @@ namespace OpenAIChatgpt
                 {
                     using (var recognizer = new SpeechRecognizer(config, audioInput))
                     {
+                        Console.WriteLine("Recognizing...");
+                        var result = await recognizer.RecognizeOnceAsync();
+                        Console.WriteLine($"Recognition result: {result.Text}");
+#if fa
                         // Subscribes to events.
                         recognizer.Recognizing += (s, e) =>
                         {
@@ -284,11 +290,105 @@ namespace OpenAIChatgpt
 
                         // Stops recognition.
                         await recognizer.StopContinuousRecognitionAsync().ConfigureAwait(false);
+#endif
                     }
                 }
                 // </recognitionContinuousWithFile>
             }
             catch (Exception)
+            {
+                throw;
+            }
+        }
+        #endregion
+
+        #region Continuous Recognition With File Async
+        public async Task<List<VoiceProfile>> WavIdentificationEnroll(SpeechConfig config, 
+                                                                        List<string> profileNames,
+                                                                        Dictionary<string, string> fileNames,
+                                                                        Dictionary<string, string> profileMapping)
+        {
+            try
+            {
+                List<VoiceProfile> voiceProfiles = new List<VoiceProfile>();
+                using (var client = new VoiceProfileClient(config))
+                {
+                    var phraseResult = await client.GetActivationPhrasesAsync(VoiceProfileType.TextIndependentVerification, "en-us");
+                    foreach (string name in profileNames)
+                    {
+
+                        // Speech Cognitive services Authentication error (401) even with correct subscription key
+                        // https://learn.microsoft.com/en-us/answers/questions/285441/speech-cognitive-services-authentication-error-(40
+                        using (var audioInput = AudioConfig.FromWavFileInput(fileNames[name])) // .FromDefaultMicrophoneInput()
+                        {
+
+                            // The API Key provided is not authorized. This is a gated service,
+                            // make sure your Azure Subscription ID is approved VoiceProfileClient GetActivationPhrasesAsync
+                            var profile = await client.CreateProfileAsync(VoiceProfileType.TextIndependentVerification, "en-us");
+                            Console.WriteLine($"Creating voice profile for {name}.");
+                            profileMapping.Add(profile.Id, name);
+
+                            VoiceProfileEnrollmentResult result = null;
+                            while (result is null || result.RemainingEnrollmentsSpeechLength > TimeSpan.Zero)
+                            {
+                                Console.WriteLine($"Speak the activation phrase, \"${phraseResult.Phrases[0]}\" to add to the profile enrollment sample for {name}.");
+                                result = await client.EnrollProfileAsync(profile, audioInput);
+                                Console.WriteLine($"Remaining enrollment audio time needed: {result.RemainingEnrollmentsSpeechLength}");
+                                Console.WriteLine("");
+                            }
+                            voiceProfiles.Add(profile);
+                        }
+                    }
+                }
+
+                return voiceProfiles;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task SpeakerIdentification(SpeechConfig config, 
+                                                    List<VoiceProfile> voiceProfiles, 
+                                                    Dictionary<string, string> profileMapping)
+        {
+            var speakerRecognizer = new SpeakerRecognizer(config, AudioConfig.FromDefaultMicrophoneInput());
+            var model = SpeakerIdentificationModel.FromProfiles(voiceProfiles);
+
+            Console.WriteLine("Speak some text to identify who it is from your list of enrolled speakers.");
+            var result = await speakerRecognizer.RecognizeOnceAsync(model);
+            Console.WriteLine($"The most similar voice profile is {profileMapping[result.ProfileId]} with similarity score {result.Score}");
+        }
+
+        public async Task WavSpeakerIdentification(SpeechConfig config,
+                                            string InFilePath,
+                                            List<VoiceProfile> voiceProfiles,
+                                            Dictionary<string, string> profileMapping)
+        {
+
+            //var speakerRecognizer = new SpeakerRecognizer(config, AudioConfig.FromDefaultMicrophoneInput());
+            //var model = SpeakerIdentificationModel.FromProfiles(voiceProfiles);
+
+            //Console.WriteLine("Speak some text to identify who it is from your list of enrolled speakers.");
+            //var result = await speakerRecognizer.RecognizeOnceAsync(model);
+            //Console.WriteLine($"The most similar voice profile is {profileMapping[result.ProfileId]} with similarity score {result.Score}");
+
+            try
+            {
+                using (SpeakerRecognizer speakerRecognizer = new SpeakerRecognizer(config, AudioConfig.FromWavFileInput(InFilePath)))
+                {
+                    using (SpeakerIdentificationModel model = SpeakerIdentificationModel.FromProfiles(voiceProfiles))
+                    {
+                        Console.WriteLine("Speak some text to identify who it is from your list of enrolled speakers.");
+
+                        var result = await speakerRecognizer.RecognizeOnceAsync(model);
+
+                        Console.WriteLine($"The most similar voice profile is {profileMapping[result.ProfileId]} with similarity score {result.Score}");
+                    }
+                }
+            }
+            catch (Exception ex)
             {
                 throw;
             }

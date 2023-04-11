@@ -39,6 +39,7 @@
             this.LblMP3 = new System.Windows.Forms.Label();
             this.BtnReadMP3 = new System.Windows.Forms.Button();
             this.LblMP3File = new System.Windows.Forms.Label();
+            this.BtnTryFunction = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // BtnListen
@@ -143,11 +144,22 @@
             this.LblMP3File.Text = "MP3 File:";
             this.LblMP3File.UseMnemonic = false;
             // 
+            // BtnTryFunction
+            // 
+            this.BtnTryFunction.Location = new System.Drawing.Point(166, 277);
+            this.BtnTryFunction.Name = "BtnTryFunction";
+            this.BtnTryFunction.Size = new System.Drawing.Size(300, 50);
+            this.BtnTryFunction.TabIndex = 12;
+            this.BtnTryFunction.Text = "Try Function";
+            this.BtnTryFunction.UseVisualStyleBackColor = true;
+            this.BtnTryFunction.Click += new System.EventHandler(this.BtnTryFunction_Click);
+            // 
             // FormSpeech
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(941, 339);
+            this.Controls.Add(this.BtnTryFunction);
             this.Controls.Add(this.LblMP3File);
             this.Controls.Add(this.BtnReadMP3);
             this.Controls.Add(this.LblMP3);
@@ -180,5 +192,6 @@
         private Label LblMP3;
         private Button BtnReadMP3;
         private Label LblMP3File;
+        private Button BtnTryFunction;
     }
 }

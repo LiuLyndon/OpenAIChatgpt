@@ -5,6 +5,7 @@ using System.Runtime.Intrinsics.X86;
 using System.Speech.Recognition;
 using System.Speech.Synthesis;
 using System.Text;
+using static Google.Cloud.Speech.V1.LanguageCodes;
 using RecognitionResult = System.Speech.Recognition.RecognitionResult;
 using SpeechSynthesizer = System.Speech.Synthesis.SpeechSynthesizer;
 
@@ -170,6 +171,50 @@ namespace OpenAIChatgpt
                 TxtMP3.Text = string.Empty;
                 MessageBox.Show($"Mic Not Found:{ex}");
                 throw;
+            }
+        }
+
+        private async void BtnTryFunction_Click(object sender, EventArgs e)
+        {
+            // replace with your own subscription key 
+            string subscriptionKey = "44b7e293382a4f78994aa1fff5be091f";
+            // replace with your own subscription region 
+            string region = "eastus";
+            var config = SpeechConfig.FromSubscription(subscriptionKey, region);
+
+            // persist profileMapping if you want to store a record of who the profile is
+            var profileMapping = new Dictionary<string, string>();
+
+
+            // mmmEnglish, Lucy
+            string userName1 = "mmmEnglish";
+            string userName2 = "Lucy";
+
+            string fileName = @"C:\Users\lyndon_liu\Downloads\Australian_vs_British_SLANG__English_Vocabulary_and_phrases_with_Lucy.wav";
+
+            var profileNames = new List<string>() 
+            { 
+                userName1,
+                userName2
+            };
+
+            var fileNames = new Dictionary<string, string>()
+            {
+                { userName1, @"C:\Users\lyndon_liu\Downloads\mmmEnglish_Make_An_Appointment_Practise_Speaking_on_the_Phone.wav" },
+                { userName2, @"C:\Users\lyndon_liu\Downloads\Lucy_20_Common_English_Speaking_Mistakes_-_Do_YOU_make_these__Free_PDF__Quiz.wav" },
+            };
+
+            using (API_MicrosoftCognitiveServicesSpeech api = new API_MicrosoftCognitiveServicesSpeech())
+            {
+                var enrolledProfiles = await api.WavIdentificationEnroll(config, profileNames, fileNames, profileMapping);
+
+                await api.WavSpeakerIdentification(config, fileName, enrolledProfiles, profileMapping);
+
+                foreach (var profile in enrolledProfiles)
+                {
+                    profile.Dispose();
+                }
+                Console.ReadLine();
             }
         }
     }
