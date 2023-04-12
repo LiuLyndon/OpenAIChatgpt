@@ -40,6 +40,7 @@
             this.BtnReadMP3 = new System.Windows.Forms.Button();
             this.LblMP3File = new System.Windows.Forms.Label();
             this.BtnTryFunction = new System.Windows.Forms.Button();
+            this.BtnSpeechSDK = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // BtnListen
@@ -146,7 +147,7 @@
             // 
             // BtnTryFunction
             // 
-            this.BtnTryFunction.Location = new System.Drawing.Point(166, 277);
+            this.BtnTryFunction.Location = new System.Drawing.Point(12, 277);
             this.BtnTryFunction.Name = "BtnTryFunction";
             this.BtnTryFunction.Size = new System.Drawing.Size(300, 50);
             this.BtnTryFunction.TabIndex = 12;
@@ -154,11 +155,22 @@
             this.BtnTryFunction.UseVisualStyleBackColor = true;
             this.BtnTryFunction.Click += new System.EventHandler(this.BtnTryFunction_Click);
             // 
+            // BtnSpeechSDK
+            // 
+            this.BtnSpeechSDK.Location = new System.Drawing.Point(318, 277);
+            this.BtnSpeechSDK.Name = "BtnSpeechSDK";
+            this.BtnSpeechSDK.Size = new System.Drawing.Size(300, 50);
+            this.BtnSpeechSDK.TabIndex = 13;
+            this.BtnSpeechSDK.Text = "Try Speech SDK";
+            this.BtnSpeechSDK.UseVisualStyleBackColor = true;
+            this.BtnSpeechSDK.Click += new System.EventHandler(this.BtnSpeechSDK_Click);
+            // 
             // FormSpeech
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(941, 339);
+            this.Controls.Add(this.BtnSpeechSDK);
             this.Controls.Add(this.BtnTryFunction);
             this.Controls.Add(this.LblMP3File);
             this.Controls.Add(this.BtnReadMP3);
@@ -193,5 +205,6 @@
         private Button BtnReadMP3;
         private Label LblMP3File;
         private Button BtnTryFunction;
+        private Button BtnSpeechSDK;
     }
 }

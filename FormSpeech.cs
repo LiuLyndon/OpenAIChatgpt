@@ -217,5 +217,20 @@ namespace OpenAIChatgpt
                 Console.ReadLine();
             }
         }
+
+        private async  void BtnSpeechSDK_Click(object sender, EventArgs e)
+        {
+            using (API_MicrosoftCognitiveServicesSpeech api = new API_MicrosoftCognitiveServicesSpeech())
+            {
+
+                Console.WriteLine("Speaker Verification:");
+                await api.SpeakerVerificationAsync();
+
+                Console.WriteLine("\nSpeaker Identification:");
+                await api.SpeakerIdentificationAsync();
+                Console.WriteLine("Please press <Return> to exit.");
+                Console.ReadLine();
+            }
+        }
     }
 }

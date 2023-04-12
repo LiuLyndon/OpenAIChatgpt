@@ -1,8 +1,12 @@
 ﻿using System;
+using System.Reflection.Metadata;
 using System.Threading.Tasks;
+using IBM.Cloud.SDK.Core.Http;
 using Microsoft.CognitiveServices.Speech;
 using Microsoft.CognitiveServices.Speech.Audio;
 using Microsoft.CognitiveServices.Speech.Speaker;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace OpenAIChatgpt
 {
@@ -223,7 +227,9 @@ namespace OpenAIChatgpt
         {
             try
             {
-                
+                config = SpeechConfig.FromSubscription("44b7e293382a4f78994aa1fff5be091f", "eastus");
+                config.SpeechRecognitionLanguage = "en-us";
+
                 // <recognitionContinuousWithFile>
                 var stopRecognition = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -302,17 +308,51 @@ namespace OpenAIChatgpt
         }
         #endregion
 
-        #region Continuous Recognition With File Async
+        #region Muilt Continuous Recognition With File Async
+        // Speaker identification
+        // speaker-recognition/
+        // https://github.com/Azure-Samples/cognitive-services-speech-sdk/tree/master/quickstart/csharp/dotnet/speaker-recognition/helloworld
         public async Task<List<VoiceProfile>> WavIdentificationEnroll(SpeechConfig config, 
                                                                         List<string> profileNames,
                                                                         Dictionary<string, string> fileNames,
                                                                         Dictionary<string, string> profileMapping)
         {
+            List<VoiceProfile> voiceProfiles = new List<VoiceProfile>();
+
+            try
+            {
+                using (var client = new VoiceProfileClient(config))
+                {
+                    var profile = await client.CreateProfileAsync(VoiceProfileType.TextIndependentVerification, "en-us");
+
+                    foreach (string name in profileNames)
+                    {
+                        using (var audioInput = AudioConfig.FromWavFileInput(fileNames[name])) // .FromDefaultMicrophoneInput()
+                        {
+                            var result = await client.EnrollProfileAsync(profile, audioInput);
+
+                            Console.WriteLine($"Creating voice profile for {result}.");
+
+                            voiceProfiles.Add(profile);
+                        }
+                    }
+                }
+
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+
+            return voiceProfiles;
+
+#if fa
             try
             {
                 List<VoiceProfile> voiceProfiles = new List<VoiceProfile>();
                 using (var client = new VoiceProfileClient(config))
                 {
+                    // 相較於「與文字相關」的驗證，「與文字無關」的驗證不需要三個音訊樣本，但「需要」總共 20 秒的音訊。
                     var phraseResult = await client.GetActivationPhrasesAsync(VoiceProfileType.TextIndependentVerification, "en-us");
                     foreach (string name in profileNames)
                     {
@@ -347,6 +387,7 @@ namespace OpenAIChatgpt
             {
                 throw;
             }
+#endif
         }
 
         public async Task SpeakerIdentification(SpeechConfig config, 
@@ -391,6 +432,164 @@ namespace OpenAIChatgpt
             catch (Exception ex)
             {
                 throw;
+            }
+        }
+        #endregion
+
+        #region cognitive services speech sdk
+        // helper function for speaker verification.
+        public async Task VerifySpeakerAsync(SpeechConfig config, VoiceProfile profile)
+        {
+            var speakerRecognizer = new SpeakerRecognizer(config, AudioConfig.FromWavFileInput(@"D:\Demo\OpenAIChatgpt\Data\myVoiceIsMyPassportVerifyMe04.wav"));
+            var model = SpeakerVerificationModel.FromProfile(profile);
+            var result = await speakerRecognizer.RecognizeOnceAsync(model);
+            if (result.Reason == ResultReason.RecognizedSpeaker)
+            {
+                Console.WriteLine($"Verified voice profile {result.ProfileId}, score is {result.Score}");
+            }
+            else if (result.Reason == ResultReason.Canceled)
+            {
+                var cancellation = SpeakerRecognitionCancellationDetails.FromResult(result);
+                Console.WriteLine($"CANCELED {profile.Id}: ErrorCode={cancellation.ErrorCode}");
+                Console.WriteLine($"CANCELED {profile.Id}: ErrorDetails={cancellation.ErrorDetails}");
+            }
+        }
+
+        // helper function for speaker identification.
+        public async Task IdentifySpeakersAsync(SpeechConfig config, List<VoiceProfile> profiles)
+        {
+            var speakerRecognizer = new SpeakerRecognizer(config, AudioConfig.FromWavFileInput(@"D:\Demo\OpenAIChatgpt\Data\TalkForAFewSeconds16.wav"));
+            var model = SpeakerIdentificationModel.FromProfiles(profiles);
+            var result = await speakerRecognizer.RecognizeOnceAsync(model);
+            if (result.Reason == ResultReason.RecognizedSpeakers)
+            {
+                Console.WriteLine($"The most similiar voice profile is {result.ProfileId} with similiarity score {result.Score}");
+                var raw = result.Properties.GetProperty(PropertyId.SpeechServiceResponse_JsonResult);
+                Console.WriteLine($"The raw json from the service is {raw}");
+            }
+        }
+
+        // perform enrollment
+        public async Task EnrollSpeakerAsync(VoiceProfileClient client, VoiceProfile profile, string audioFileName)
+        {
+            // Create audio input for enrollment from audio files. Replace with your own audio files.
+            using (var audioInput = AudioConfig.FromWavFileInput(audioFileName))
+            {
+                var reason = ResultReason.EnrollingVoiceProfile;
+                while (reason == ResultReason.EnrollingVoiceProfile)
+                {
+                    var result = await client.EnrollProfileAsync(profile, audioInput);
+                    if (result.Reason == ResultReason.EnrollingVoiceProfile)
+                    {
+                        Console.WriteLine($"Enrolling profile id {profile.Id}.");
+                    }
+                    else if (result.Reason == ResultReason.EnrolledVoiceProfile)
+                    {
+                        Console.WriteLine($"Enrolled profile id {profile.Id}.");
+                    }
+                    else if (result.Reason == ResultReason.Canceled)
+                    {
+                        var cancellation = VoiceProfileEnrollmentCancellationDetails.FromResult(result);
+                        Console.WriteLine($"CANCELED {profile.Id}: ErrorCode={cancellation.ErrorCode}");
+                        Console.WriteLine($"CANCELED {profile.Id}: ErrorDetails={cancellation.ErrorDetails}");
+                    }
+                    Console.WriteLine($"Summation of pure speech across all enrollments in seconds is {result.EnrollmentsSpeechLength.TotalSeconds}.");
+                    Console.WriteLine($"The remaining enrollments speech length in seconds is {result.RemainingEnrollmentsSpeechLength?.TotalSeconds}.");
+                    reason = result.Reason;
+                }
+            }
+        }
+
+        // perform speaker identification.
+        public async Task SpeakerIdentificationAsync()
+        {
+            // Replace with your own subscription key and service region (e.g., "westus").
+            string subscriptionKey = "44b7e293382a4f78994aa1fff5be091f";
+            string region = "eastus";
+
+            // Creates an instance of a speech config with specified subscription key and service region.
+            var config = SpeechConfig.FromSubscription(subscriptionKey, region);
+
+            // Creates a VoiceProfileClient to enroll your voice profile.
+            using (var client = new VoiceProfileClient(config))
+            // Creates two text independent voice profiles in one of the supported locales.
+            using (var profile1 = await client.CreateProfileAsync(VoiceProfileType.TextIndependentIdentification, "en-us"))
+            using (var profile2 = await client.CreateProfileAsync(VoiceProfileType.TextIndependentIdentification, "en-us"))
+            {
+                try
+                {
+                    Console.WriteLine($"Created profiles {profile1.Id} and {profile2.Id} for text independent identification.");
+
+                    await EnrollSpeakerAsync(client, profile1, @"D:\Demo\OpenAIChatgpt\Data\TalkForAFewSeconds16.wav");
+                    await EnrollSpeakerAsync(client, profile2, @"D:\Demo\OpenAIChatgpt\Data\neuralActivationPhrase.wav");
+                    List<VoiceProfile> profiles = new List<VoiceProfile> { profile1, profile2 };
+                    await IdentifySpeakersAsync(config, profiles);
+                }
+                finally
+                {
+                    await client.DeleteProfileAsync(profile1);
+                    await client.DeleteProfileAsync(profile2);
+                }
+            }
+        }
+
+        // perform speaker verification.
+        public async Task SpeakerVerificationAsync()
+        {
+            // Replace with your own subscription key and service region (e.g., "westus").
+            string subscriptionKey = "d52842ca90fc4847b69c5b07a25426a2";
+            string region = "eastus";
+
+            // Creates an instance of a speech config with specified subscription key and service region.
+            var config = SpeechConfig.FromSubscription(subscriptionKey, region);
+
+            // Creates a VoiceProfileClient to enroll your voice profile.
+            using (var client = new VoiceProfileClient(config))
+            // Creates a text dependent voice profile in one of the supported locales using the client.
+            using (var profile = await client.CreateProfileAsync(VoiceProfileType.TextDependentVerification, "en-us"))
+            {
+                try
+                {
+                    Console.WriteLine($"Created a profile {profile.Id} for text dependent verification.");
+                    string[] trainingFiles = new string[]
+                    {
+                        @"D:\Demo\OpenAIChatgpt\Data\MyVoiceIsMyPassportVerifyMe01.wav",
+                        @"D:\Demo\OpenAIChatgpt\Data\MyVoiceIsMyPassportVerifyMe02.wav",
+                        @"D:\Demo\OpenAIChatgpt\Data\MyVoiceIsMyPassportVerifyMe03.wav"
+                    };
+
+                    // feed each training file to the enrollment service.
+                    foreach (var trainingFile in trainingFiles)
+                    {
+                        // Create audio input for enrollment from audio file. Replace with your own audio files.
+                        using (var audioInput = AudioConfig.FromWavFileInput(trainingFile))
+                        {
+                            var result = await client.EnrollProfileAsync(profile, audioInput);
+                            if (result.Reason == ResultReason.EnrollingVoiceProfile)
+                            {
+                                Console.WriteLine($"Enrolling profile id {profile.Id}.");
+                            }
+                            else if (result.Reason == ResultReason.EnrolledVoiceProfile)
+                            {
+                                Console.WriteLine($"Enrolled profile id {profile.Id}.");
+                                await VerifySpeakerAsync(config, profile);
+                            }
+                            else if (result.Reason == ResultReason.Canceled)
+                            {
+                                var cancellation = VoiceProfileEnrollmentCancellationDetails.FromResult(result);
+                                Console.WriteLine($"CANCELED {profile.Id}: ErrorCode={cancellation.ErrorCode}");
+                                Console.WriteLine($"CANCELED {profile.Id}: ErrorDetails={cancellation.ErrorDetails}");
+                            }
+
+                            Console.WriteLine($"Number of enrollment audios accepted for {profile.Id} is {result.EnrollmentsCount}.");
+                            Console.WriteLine($"Number of enrollment audios needed to complete {profile.Id} is {result.RemainingEnrollmentsCount}.");
+                        }
+                    }
+                }
+                finally
+                {
+                    await client.DeleteProfileAsync(profile);
+                }
             }
         }
         #endregion
