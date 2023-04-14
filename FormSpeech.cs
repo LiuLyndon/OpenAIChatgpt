@@ -1,5 +1,6 @@
 using Microsoft.CognitiveServices.Speech;
 using System.Globalization;
+using System.Runtime;
 using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics.X86;
 using System.Speech.Recognition;
@@ -16,6 +17,7 @@ namespace OpenAIChatgpt
     /// </summary>
     public partial class FormSpeech : Form
     {
+        private string TextResult { get; set; } = string.Empty;
         public FormSpeech()
         {
             InitializeComponent();
@@ -27,10 +29,23 @@ namespace OpenAIChatgpt
         {
             this.BtnOpenMP3.Enabled = true;
             this.LblMP3File.Text = string.Empty;
-
             this.BtnReadMP3.Enabled = false;
+
+            this.TxtSystem.Text = "You are a teacher who helps children understand if things are animals or not.  If the user tells you an animal, you say \"yes\".  If the user tells you something that is not an animal, you say \"no\".  You only ever respond with \"yes\" or \"no\".  You do not say anything else.";
         }
 
+        // [C#] 使用 Delegate 於 WinForm 中傳遞與接收訊息
+        // https://dotblogs.com.tw/joysdw12/2013/06/21/delegate-winfom
+        /// <summary>
+        /// The callback method must match the signature of the callback delegate.
+        /// </summary>
+        /// <param name="n"></param>
+        private void ResultCallback(string Message)
+        {
+            this.TxtMP3.AppendText($"{Message} \r\n");
+        }
+
+        #region Listen
         private async void BtnListen_Click(object sender, EventArgs e)
         {
             //using (API_MicrosoftCognitiveServicesSpeech api = new API_MicrosoftCognitiveServicesSpeech())
@@ -45,9 +60,12 @@ namespace OpenAIChatgpt
             //    apiMSS.Speak(this.TxtListen.Text);
             //}
         }
+        #endregion
 
+        #region Read
         private void BtnRead_Click(object sender, EventArgs e)
         {
+#if fa
             TxtRead.Text = "Listening Now...";
 
             try
@@ -71,7 +89,9 @@ namespace OpenAIChatgpt
                 MessageBox.Show($"Mic Not Found:{ex}");
                 throw;
             }
+#endif
         }
+        #endregion
 
         private void BtnOpenMP3_Click(object sender, EventArgs e)
         {
@@ -107,73 +127,43 @@ namespace OpenAIChatgpt
 
             try
             {
-                Console.WriteLine($"ContinuousRecognitionWithFileAsync");
+                ResultCallback($"ReadMP3 Start");
 
                 using (API_MicrosoftCognitiveServicesSpeech api = new API_MicrosoftCognitiveServicesSpeech())
                 {
+                    // reLib.bOnlyPage = ckbOnlyPage.Checked;
+                    api.ReturnValueCallback += new API_MicrosoftCognitiveServicesSpeech.ReturnValueDelegate(this.ResultCallback);
+
                     await api.ContinuousRecognitionWithFileAsync(MP3File);
-                    Console.WriteLine("Please press <Return> to continue.");
-                    Console.ReadLine();
+
+                    this.TxtAzure.Text = TextResult = api.AzureAIresult;
                 }
-#if fa
-                // Create an in-process speech recognizer for the en-US locale.  
-                using (SpeechRecognitionEngine recognizer = new SpeechRecognitionEngine()) // new System.Globalization.CultureInfo("en-US")
-                {
-                    // Create and load a dictation grammar.  
-                    recognizer.LoadGrammar(new DictationGrammar());
 
-                    // Add a handler for the speech recognized event.  
-                    //recognizer.SpeechRecognized +=new EventHandler<SpeechRecognizedEventArgs>(recognizer_SpeechRecognized);
+                ResultCallback($"ReadMP3 End");
 
-                    // Configure input to the speech recognizer.  
-                    //recognizer.SetInputToDefaultAudioDevice();
-
-                    // Start asynchronous, continuous speech recognition.  
-                    //recognizer.RecognizeAsync(RecognizeMode.Multiple);
-
-                    recognizer.SetInputToWaveFile(LblMP3File.Text);
-                    recognizer.BabbleTimeout = new TimeSpan(Int32.MaxValue);
-                    recognizer.InitialSilenceTimeout = new TimeSpan(Int32.MaxValue);
-                    recognizer.EndSilenceTimeout = new TimeSpan(100000000);
-                    recognizer.EndSilenceTimeoutAmbiguous = new TimeSpan(100000000);
-
-                    // Keep the console window open.  
-                    StringBuilder sb = new StringBuilder();
-                    while (true)
-                    {
-                        try
-                        {
-                            var recText = recognizer.Recognize();
-                            if (recText == null)
-                            {
-                                break;
-                            }
-
-                            sb.Append(recText.Text);
-                        }
-                        catch (Exception ex)
-                        {
-                            //handle exception      
-                            //...
-
-                            break;
-                        }
-                    }
-                    TxtMP3.Text = recognizer.ToString();
-
-                }
-#endif
                 BtnReadMP3.Enabled = false;
                 BtnReadMP3.Enabled = true;
             }
             catch (Exception ex)
             {
                 TxtMP3.Text = string.Empty;
-                MessageBox.Show($"Mic Not Found:{ex}");
+                ResultCallback($"ReadMP3:{ex}");
                 throw;
             }
         }
 
+        private async void BtnOpenAI_Click(object sender, EventArgs e)
+        {
+            using (API_OpenAI api = new API_OpenAI())
+            {
+                api.ReturnValueCallback += new API_OpenAI.ReturnValueDelegate(this.ResultCallback);
+
+                Console.WriteLine("ChatGPT");
+                await api.ChatGPT();
+            }
+        }
+
+        #region TryFunction
         private async void BtnTryFunction_Click(object sender, EventArgs e)
         {
             // replace with your own subscription key 
@@ -217,8 +207,10 @@ namespace OpenAIChatgpt
                 Console.ReadLine();
             }
         }
+        #endregion
 
-        private async  void BtnSpeechSDK_Click(object sender, EventArgs e)
+        #region SpeechSDK
+        private async void BtnSpeechSDK_Click(object sender, EventArgs e)
         {
             using (API_MicrosoftCognitiveServicesSpeech api = new API_MicrosoftCognitiveServicesSpeech())
             {
@@ -232,5 +224,6 @@ namespace OpenAIChatgpt
                 Console.ReadLine();
             }
         }
+        #endregion
     }
 }

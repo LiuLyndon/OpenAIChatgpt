@@ -26,10 +26,34 @@ namespace OpenAIChatgpt
     /// </summary>
     public class API_MicrosoftCognitiveServicesSpeech : IDisposable
     {
+        /// <summary>
+        /// Return Value Delegate
+        /// </summary>
+        /// <param name="pValue">The p value.</param>
+        public delegate void ReturnValueDelegate(string pValue);
+        /// <summary>
+        /// Occurs when [return value callback].
+        /// </summary>
+        public event ReturnValueDelegate ReturnValueCallback;
+        /// <summary>
+        /// 金鑰 1
+        /// </summary>
+        private string subscriptionKey { get; } = "e328661b67904115ad544d26e6682d74";
+        /// <summary>
+        /// 位置/區域
+        /// </summary>
+        private string region { get; } = "japaneast";
+        /// <summary>
+        /// SpeechLanguage https://learn.microsoft.com/en-us/azure/cognitive-services/speech-service/language-support?tabs=stt
+        /// </summary>
+        private string speechLanguage { get; } = "en-US";
         // Creates an instance of a speech config with specified subscription key and service region.
         // Replace with your own subscription key and service region (e.g., "westus").
-        SpeechConfig config { set; get; }
-
+        private SpeechConfig config { set; get; }
+        /// <summary>
+        /// Azure AI result
+        /// </summary>
+        public string AzureAIresult { set; get; } = string.Empty;
         /// <summary>
         /// Report ByDay Library using EPPlus
         /// </summary>
@@ -227,8 +251,8 @@ namespace OpenAIChatgpt
         {
             try
             {
-                config = SpeechConfig.FromSubscription("44b7e293382a4f78994aa1fff5be091f", "eastus");
-                config.SpeechRecognitionLanguage = "en-us";
+                config = SpeechConfig.FromSubscription(subscriptionKey, region);
+                config.SpeechRecognitionLanguage = speechLanguage;
 
                 // <recognitionContinuousWithFile>
                 var stopRecognition = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -239,64 +263,13 @@ namespace OpenAIChatgpt
                 {
                     using (var recognizer = new SpeechRecognizer(config, audioInput))
                     {
-                        Console.WriteLine("Recognizing...");
+                        ReturnValueCallback("Read...");
+
                         var result = await recognizer.RecognizeOnceAsync();
-                        Console.WriteLine($"Recognition result: {result.Text}");
-#if fa
-                        // Subscribes to events.
-                        recognizer.Recognizing += (s, e) =>
-                        {
-                            Console.WriteLine($"RECOGNIZING: Text={e.Result.Text}");
-                        };
 
-                        recognizer.Recognized += (s, e) =>
-                        {
-                            if (e.Result.Reason == ResultReason.RecognizedSpeech)
-                            {
-                                Console.WriteLine($"RECOGNIZED: Text={e.Result.Text}");
-                            }
-                            else if (e.Result.Reason == ResultReason.NoMatch)
-                            {
-                                Console.WriteLine($"NOMATCH: Speech could not be recognized.");
-                            }
-                        };
+                        ReturnValueCallback($"Read result: {result.Text}");
 
-                        recognizer.Canceled += (s, e) =>
-                        {
-                            Console.WriteLine($"CANCELED: Reason={e.Reason}");
-
-                            if (e.Reason == CancellationReason.Error)
-                            {
-                                Console.WriteLine($"CANCELED: ErrorCode={e.ErrorCode}");
-                                Console.WriteLine($"CANCELED: ErrorDetails={e.ErrorDetails}");
-                                Console.WriteLine($"CANCELED: Did you update the subscription info?");
-                            }
-
-                            stopRecognition.TrySetResult(0);
-                        };
-
-                        recognizer.SessionStarted += (s, e) =>
-                        {
-                            Console.WriteLine("\n    Session started event.");
-                        };
-
-                        recognizer.SessionStopped += (s, e) =>
-                        {
-                            Console.WriteLine("\n    Session stopped event.");
-                            Console.WriteLine("\nStop recognition.");
-                            stopRecognition.TrySetResult(0);
-                        };
-
-                        // Starts continuous recognition. Uses StopContinuousRecognitionAsync() to stop recognition.
-                        await recognizer.StartContinuousRecognitionAsync().ConfigureAwait(false);
-
-                        // Waits for completion.
-                        // Use Task.WaitAny to keep the task rooted.
-                        Task.WaitAny(new[] { stopRecognition.Task });
-
-                        // Stops recognition.
-                        await recognizer.StopContinuousRecognitionAsync().ConfigureAwait(false);
-#endif
+                        AzureAIresult = result.Text;
                     }
                 }
                 // </recognitionContinuousWithFile>

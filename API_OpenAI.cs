@@ -1,14 +1,28 @@
-﻿using OpenAI.GPT3.ObjectModels;
-using OpenAI.GPT3.ObjectModels.RequestModels;
+﻿using OpenAI_API;
 
 namespace OpenAIChatgpt
 {
     /// <summary>
+    /// C# / .NET
+    /// 1. Betalgo.OpenAI.GPT3 by Betalgo
+    /// 2. OpenAI-API-dotnet by OkGoDoIt (V) 使用方法簡單
+    /// 3. OpenAI-DotNet by RageAgainstThePixel
     /// https://ithelp.ithome.com.tw/articles/10310360?sc=rss.qu
     /// https://michaelceber.medium.com/chat-bot-using-chat-gpt-3-5-in-c-bb9c9a21f7db
-
+    /// https://github.com/OkGoDoIt/OpenAI-API-dotnet
+    /// </summary>
     public class API_OpenAI : IDisposable
     {
+        /// <summary>
+        /// Return Value Delegate
+        /// </summary>
+        /// <param name="pValue">The p value.</param>
+        public delegate void ReturnValueDelegate(string pValue);
+        /// <summary>
+        /// Occurs when [return value callback].
+        /// </summary>
+        public event ReturnValueDelegate ReturnValueCallback;
+        private string apikey { get; } = "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";
         /// <summary>
         /// Report ByDay Library using EPPlus
         /// </summary>
@@ -65,10 +79,57 @@ namespace OpenAIChatgpt
         #endregion
 
         /// <summary>
-        /// 
+        /// OpenAI-API-dotnet - 聊天GPT
         /// </summary>
-        public void ChatGPT()
+        public async Task ChatGPT()
         {
+            // OpenAIAPI api = new OpenAIAPI(new APIAuthentication("YOUR_API_KEY", "org-yourOrgHere"));
+
+            OpenAIAPI api = new OpenAIAPI(apikey);
+            ReturnValueCallback("GetCompletion: One Two Three One Two");
+            var result = await api.Completions.GetCompletion("One Two Three One Two");
+            ReturnValueCallback($"result: {result}");
+            // Console.WriteLine(result);
+            // should print something starting with "Three"
+
+            var chat = api.Chat.CreateConversation();
+
+            ReturnValueCallback("AppendSystemMessage");
+            /// give instruction as System
+            chat.AppendSystemMessage("You are a teacher who helps children understand if things are animals or not.  If the user tells you an animal, you say \"yes\".  If the user tells you something that is not an animal, you say \"no\".  You only ever respond with \"yes\" or \"no\".  You do not say anything else.");
+
+            // give a few examples as user and assistant
+            ReturnValueCallback("AppendUserInput: Is this an animal? Cat");
+            chat.AppendUserInput("Is this an animal? Cat");
+            ReturnValueCallback("AppendExampleChatbotOutput: Yes");
+            chat.AppendExampleChatbotOutput("Yes");
+            ReturnValueCallback("AppendUserInput: Is this an animal? House");
+            chat.AppendUserInput("Is this an animal? House");
+            ReturnValueCallback("AppendExampleChatbotOutput: No");
+            chat.AppendExampleChatbotOutput("No");
+
+            // now let's ask it a question'
+            ReturnValueCallback("AppendUserInput: Is this an animal? Dog");
+            chat.AppendUserInput("Is this an animal? Dog");
+            // and get the response
+            string response = await chat.GetResponseFromChatbotAsync();
+            ReturnValueCallback($"Chat: {response}");
+            Console.WriteLine(response); // "Yes"
+
+            // and continue the conversation by asking another
+            ReturnValueCallback("AppendUserInput: Is this an animal? Chair");
+            chat.AppendUserInput("Is this an animal? Chair");
+            // and get another response
+            response = await chat.GetResponseFromChatbotAsync();
+            ReturnValueCallback($"Chat: {response}");
+            Console.WriteLine(response); // "No"
+
+            // the entire chat history is available in chat.Messages
+            //foreach (ChatMessage msg in chat.Messages)
+            //{
+            //    Console.WriteLine($"{msg.Role}: {msg.Content}");
+            //}
+
 #if fa
             var completionResult = await sdk.ChatCompletion.CreateCompletion(new ChatCompletionCreateRequest
             {
