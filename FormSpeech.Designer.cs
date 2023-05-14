@@ -28,65 +28,17 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.BtnListen = new System.Windows.Forms.Button();
-            this.LblListen = new System.Windows.Forms.Label();
-            this.LblRead = new System.Windows.Forms.Label();
-            this.BtnRead = new System.Windows.Forms.Button();
             this.TxtMP3 = new System.Windows.Forms.TextBox();
             this.BtnOpenMP3 = new System.Windows.Forms.Button();
             this.LblMP3 = new System.Windows.Forms.Label();
             this.BtnReadMP3 = new System.Windows.Forms.Button();
             this.LblMP3File = new System.Windows.Forms.Label();
-            this.BtnTryFunction = new System.Windows.Forms.Button();
-            this.BtnSpeechSDK = new System.Windows.Forms.Button();
             this.BtnOpenAI = new System.Windows.Forms.Button();
             this.TxtSystem = new System.Windows.Forms.TextBox();
             this.TxtAzure = new System.Windows.Forms.TextBox();
             this.LblOpanAI = new System.Windows.Forms.Label();
             this.LblSystem = new System.Windows.Forms.Label();
             this.SuspendLayout();
-            // 
-            // BtnListen
-            // 
-            this.BtnListen.Enabled = false;
-            this.BtnListen.Location = new System.Drawing.Point(641, 48);
-            this.BtnListen.Name = "BtnListen";
-            this.BtnListen.Size = new System.Drawing.Size(100, 50);
-            this.BtnListen.TabIndex = 0;
-            this.BtnListen.Text = "Listen";
-            this.BtnListen.UseVisualStyleBackColor = true;
-            this.BtnListen.Click += new System.EventHandler(this.BtnListen_Click);
-            // 
-            // LblListen
-            // 
-            this.LblListen.AutoSize = true;
-            this.LblListen.Enabled = false;
-            this.LblListen.Location = new System.Drawing.Point(641, 30);
-            this.LblListen.Name = "LblListen";
-            this.LblListen.Size = new System.Drawing.Size(83, 15);
-            this.LblListen.TabIndex = 2;
-            this.LblListen.Text = "Text to Speech";
-            // 
-            // LblRead
-            // 
-            this.LblRead.AutoSize = true;
-            this.LblRead.Enabled = false;
-            this.LblRead.Location = new System.Drawing.Point(641, 106);
-            this.LblRead.Name = "LblRead";
-            this.LblRead.Size = new System.Drawing.Size(83, 15);
-            this.LblRead.TabIndex = 4;
-            this.LblRead.Text = "Speech to Text";
-            // 
-            // BtnRead
-            // 
-            this.BtnRead.Enabled = false;
-            this.BtnRead.Location = new System.Drawing.Point(641, 124);
-            this.BtnRead.Name = "BtnRead";
-            this.BtnRead.Size = new System.Drawing.Size(100, 50);
-            this.BtnRead.TabIndex = 6;
-            this.BtnRead.Text = "Read";
-            this.BtnRead.UseVisualStyleBackColor = true;
-            this.BtnRead.Click += new System.EventHandler(this.BtnRead_Click);
             // 
             // TxtMP3
             // 
@@ -135,28 +87,6 @@
             this.LblMP3File.TabIndex = 11;
             this.LblMP3File.Text = "MP3 File:";
             this.LblMP3File.UseMnemonic = false;
-            // 
-            // BtnTryFunction
-            // 
-            this.BtnTryFunction.Enabled = false;
-            this.BtnTryFunction.Location = new System.Drawing.Point(641, 207);
-            this.BtnTryFunction.Name = "BtnTryFunction";
-            this.BtnTryFunction.Size = new System.Drawing.Size(100, 50);
-            this.BtnTryFunction.TabIndex = 12;
-            this.BtnTryFunction.Text = "Try Function";
-            this.BtnTryFunction.UseVisualStyleBackColor = true;
-            this.BtnTryFunction.Click += new System.EventHandler(this.BtnTryFunction_Click);
-            // 
-            // BtnSpeechSDK
-            // 
-            this.BtnSpeechSDK.Enabled = false;
-            this.BtnSpeechSDK.Location = new System.Drawing.Point(641, 263);
-            this.BtnSpeechSDK.Name = "BtnSpeechSDK";
-            this.BtnSpeechSDK.Size = new System.Drawing.Size(100, 50);
-            this.BtnSpeechSDK.TabIndex = 13;
-            this.BtnSpeechSDK.Text = "Try Speech SDK";
-            this.BtnSpeechSDK.UseVisualStyleBackColor = true;
-            this.BtnSpeechSDK.Click += new System.EventHandler(this.BtnSpeechSDK_Click);
             // 
             // BtnOpenAI
             // 
@@ -208,23 +138,17 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(756, 431);
+            this.ClientSize = new System.Drawing.Size(628, 431);
             this.Controls.Add(this.LblSystem);
             this.Controls.Add(this.LblOpanAI);
             this.Controls.Add(this.TxtAzure);
             this.Controls.Add(this.TxtSystem);
             this.Controls.Add(this.BtnOpenAI);
-            this.Controls.Add(this.BtnSpeechSDK);
-            this.Controls.Add(this.BtnTryFunction);
             this.Controls.Add(this.LblMP3File);
             this.Controls.Add(this.BtnReadMP3);
             this.Controls.Add(this.LblMP3);
             this.Controls.Add(this.BtnOpenMP3);
             this.Controls.Add(this.TxtMP3);
-            this.Controls.Add(this.BtnRead);
-            this.Controls.Add(this.LblRead);
-            this.Controls.Add(this.LblListen);
-            this.Controls.Add(this.BtnListen);
             this.Name = "FormSpeech";
             this.Text = "Form1";
             this.Load += new System.EventHandler(this.FormSpeech_Load);
@@ -234,18 +158,11 @@
         }
 
         #endregion
-
-        private Button BtnListen;
-        private Label LblListen;
-        private Label LblRead;
-        private Button BtnRead;
         private TextBox TxtMP3;
         private Button BtnOpenMP3;
         private Label LblMP3;
         private Button BtnReadMP3;
         private Label LblMP3File;
-        private Button BtnTryFunction;
-        private Button BtnSpeechSDK;
         private Button BtnOpenAI;
         private TextBox TxtSystem;
         private TextBox TxtAzure;

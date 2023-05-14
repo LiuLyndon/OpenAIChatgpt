@@ -507,6 +507,10 @@ namespace OpenAIChatgpt
         }
 
         // perform speaker verification.
+        /// <summary>
+        /// https://github.com/Azure-Samples/cognitive-services-speech-sdk/blob/master/quickstart/csharp/dotnet/speaker-recognition/helloworld/Program.cs
+        /// </summary>
+        /// <returns></returns>
         public async Task SpeakerVerificationAsync()
         {
             // Replace with your own subscription key and service region (e.g., "westus").
